@@ -1,0 +1,14 @@
+*.cache
+.dockerignore
+.editorconfig
+.env.*
+.git*
+.idea
+Dockerfile
+LICENSE
+README.md
+fly.*
+phpunit.xml
+rector.php
+tests
+vendor
