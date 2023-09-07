@@ -1,30 +1,65 @@
 {
-    "name": "laravel/laravel",
+    "name": "specialtycoffeecyprus/specialty-bot",
+    "description": "Telegram @SpecialtyCoffeeCyBot of Specialty Coffee in Cyprus website",
     "type": "project",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "keywords": [
+        "telegram",
+        "bot",
+        "specialty",
+        "coffee",
+        "coffeshop",
+        "cyprus"
+    ],
+    "homepage": "https://t.me/SpecialtyCoffeeCyBot",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "Vladimir",
+            "homepage": "https://t.me/vladimir_mvs",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "email": "specialtycoffeecy@gmail.com",
+        "issues": "https://github.com/specialtycoffeecyprus/specialty-bot/issues",
+        "docs": "https://dev.to/vladimir_mvs/pragmatic-development-3-telegram-bot-ed1"
+    },
     "require": {
-        "php": "^7.3|^8.0",
-        "fruitcake/laravel-cors": "^2.0",
-        "guzzlehttp/guzzle": "^7.0.1",
-        "laravel/framework": "^8.75",
-        "laravel/sanctum": "^2.11",
-        "laravel/tinker": "^2.5"
+        "php": "^8.2",
+        "ext-apcu": "*",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-phar": "*",
+        "ext-zend-opcache": "*",
+        "nutgram/nutgram": "*",
+        "sentry/sdk": "*",
+        "symfony/dotenv": "^6"
     },
     "require-dev": {
-        "facade/ignition": "^2.5",
-        "fakerphp/faker": "^1.9.1",
-        "laravel/sail": "^1.0.1",
-        "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^5.10",
-        "phpunit/phpunit": "^9.5.10"
+        "ext-dom": "*",
+        "ext-simplexml": "*",
+        "ext-xml": "*",
+        "ext-xmlwriter": "*",
+        "laravel/pint": "*",
+        "pestphp/pest": "*",
+        "rector/rector": "*"
+    },
+    "replace": {
+        "myclabs/deep-copy": "*",
+        "myclabs/php-enum": "*",
+        "nesbot/carbon": "*",
+        "symfony/polyfill-ctype": "*",
+        "symfony/polyfill-intl-grapheme": "*",
+        "symfony/polyfill-mbstring": "*",
+        "symfony/polyfill-php80": "*",
+        "symfony/polyfill-php81": "*",
+        "voku/portable-ascii": "*"
     },
     "autoload": {
         "psr-4": {
-            "App\\": "app/",
-            "Database\\Factories\\": "database/factories/",
-            "Database\\Seeders\\": "database/seeders/"
+            "App\\": "app/"
         }
     },
     "autoload-dev": {
@@ -32,31 +67,17 @@
             "Tests\\": "tests/"
         }
     },
-    "scripts": {
-        "post-autoload-dump": [
-            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
-        ],
-        "post-update-cmd": [
-            "@php artisan vendor:publish --tag=laravel-assets --ansi --force"
-        ],
-        "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
-        ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
-        ]
-    },
-    "extra": {
-        "laravel": {
-            "dont-discover": []
-        }
-    },
     "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "pestphp/pest-plugin": true
+        },
+        "apcu-autoloader": true,
+        "discard-changes": true,
+        "htaccess-protect": false,
+        "notify-on-install": false,
         "optimize-autoloader": true,
-        "preferred-install": "dist",
+        "platform-check": false,
         "sort-packages": true
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }
