@@ -1,55 +1,75 @@
 <?php
 
-use Illuminate\Contracts\Http\Kernel;
-use Illuminate\Http\Request;
+declare(strict_types=1);
 
-define('LARAVEL_START', microtime(true));
+require dirname(__DIR__).'/vendor/autoload.php';
 
-/*
-|--------------------------------------------------------------------------
-| Check If The Application Is Under Maintenance
-|--------------------------------------------------------------------------
-|
-| If the application is in maintenance / demo mode via the "down" command
-| we will load this file so that any pre-rendered content can be shown
-| instead of starting the framework, which could cause an exception.
-|
-*/
+use App\Handlers\ApiErrorHandler;
+use App\Handlers\Commands\HelpCommand;
+use App\Handlers\Commands\ListCommand;
+use App\Handlers\Commands\MapCommand;
+use App\Handlers\Commands\NearestCommand;
+use App\Handlers\Commands\RandomCommand;
+use App\Handlers\Commands\StartCommand;
+use App\Handlers\ExceptionHandler;
+use App\Handlers\FallbackHandler;
+use App\Handlers\LocationHandler;
+use App\Handlers\NotSupportedHandler;
+use App\Handlers\NullHandler;
+use App\Handlers\SearchHandler;
+use App\Middleware\AuthMiddleware;
+use App\Middleware\SearchRequirementsMiddleware;
+use GuzzleHttp\Client;
+use SergiX44\Nutgram\Logger\ConsoleLogger;
+use SergiX44\Nutgram\Nutgram;
+use SergiX44\Nutgram\RunningMode\Webhook;
+use SergiX44\Nutgram\Telegram\Attributes\MessageTypes;
+use Symfony\Component\Dotenv\Dotenv;
 
-if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php')) {
-    require $maintenance;
-}
+use function Sentry\init;
 
-/*
-|--------------------------------------------------------------------------
-| Register The Auto Loader
-|--------------------------------------------------------------------------
-|
-| Composer provides a convenient, automatically generated class loader for
-| this application. We just need to utilize it! We'll simply require it
-| into the script here so we don't need to manually load our classes.
-|
-*/
+$dotenv = new Dotenv();
+$dotenv->loadEnv(dirname(__DIR__).'/.env');
 
-require __DIR__.'/../vendor/autoload.php';
+init(['dsn' => $_ENV['SENTRY_DSN']]);
 
-/*
-|--------------------------------------------------------------------------
-| Run The Application
-|--------------------------------------------------------------------------
-|
-| Once we have the application, we can handle the incoming request using
-| the application's HTTP kernel. Then, we will send the response back
-| to this client's browser, allowing them to enjoy our application.
-|
-*/
+$bot = new Nutgram($_ENV['BOT_TOKEN'], [
+    'timeout' => $_ENV['CONNECT_TIMEOUT'],
+    'logger' => ConsoleLogger::class,
+]);
+$bot->setRunningMode(Webhook::class);
 
-$app = require_once __DIR__.'/../bootstrap/app.php';
+$bot->middleware(AuthMiddleware::class);
 
-$kernel = $app->make(Kernel::class);
+$bot->fallback(FallbackHandler::class);
+$bot->onException(ExceptionHandler::class);
+$bot->onApiError(ApiErrorHandler::class);
 
-$response = $kernel->handle(
-    $request = Request::capture()
-)->send();
+$bot->onText(NearestCommand::SEND_TEXT, NotSupportedHandler::class);
 
-$kernel->terminate($request, $response);
+$bot->onMessageType(MessageTypes::TEXT, SearchHandler::class)->middleware(SearchRequirementsMiddleware::class);
+$bot->onMessageType(MessageTypes::LOCATION, LocationHandler::class);
+
+$bot->onMessageType(MessageTypes::NEW_CHAT_MEMBERS, NullHandler::class);
+$bot->onMessageType(MessageTypes::LEFT_CHAT_MEMBER, NullHandler::class);
+
+$bot->onCommand(ListCommand::getName(), ListCommand::class)->description(ListCommand::getDescription());
+$bot->onCommand(MapCommand::getName(), MapCommand::class)->description(MapCommand::getDescription());
+$bot->onCommand(NearestCommand::getName(), NearestCommand::class)->description(NearestCommand::getDescription());
+$bot->onCommand(RandomCommand::getName(), RandomCommand::class)->description(RandomCommand::getDescription());
+$bot->onCommand(StartCommand::getName(), StartCommand::class)->description(StartCommand::getDescription());
+$bot->onCommand(HelpCommand::getName(), HelpCommand::class)->description(HelpCommand::getDescription());
+
+$bot->registerMyCommands();
+
+$http = new Client([
+    'base_uri' => $_ENV['API_URL'],
+    'timeout' => $_ENV['CONNECT_TIMEOUT'],
+    'headers' => [
+        'Accept-Encoding' => 'gzip',
+        'Authorization' => 'Bearer '.$_ENV['API_TOKEN'],
+    ],
+]);
+$bot->getContainer()->addShared(Client::class, $http);
+
+$bot->run();
