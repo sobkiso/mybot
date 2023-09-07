@@ -1,0 +1,18 @@
+app = "specialm-bot"
+primary_region = "ams"
+
+[[services]]
+protocol = "tcp"
+internal_port = 8080
+
+[[services.ports]]
+port = 443
+handlers = ["tls", "http"]
+
+[[services.http_checks]]
+interval = "10s"
+timeout = "1s"
+grace_period = "5s"
+method = "get"
+path = "/"
+protocol = "http"
